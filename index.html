@@ -1,40 +1,40 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Multiple Timers App</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple Timers App</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="page" role="main">
-    <header class="header">
-      <h1>Multiple Timers App</h1>
-    </header>
+    <div class="container">
+        <h1 class="title">Multiple Timers App</h1>
 
-    <section class="input-wrap" aria-labelledby="set-time-heading">
-      <form id="timer-form" class="timer-form" autocomplete="off" novalidate>
-        <span id="set-time-heading" class="label">Set Time :</span>
-        <div class="input-panel" role="group" aria-label="time inputs">
-          <input id="hours" name="hours" inputmode="numeric" placeholder="hh" maxlength="3" aria-label="hours" />
-          <span class="sep">:</span>
-          <input id="minutes" name="minutes" inputmode="numeric" placeholder="mm" maxlength="2" aria-label="minutes" />
-          <span class="sep">:</span>
-          <input id="seconds" name="seconds" inputmode="numeric" placeholder="ss" maxlength="2" aria-label="seconds" />
+        <div class="timer-input-section">
+            <div class="input-row">
+                <span class="label">Set Time :</span>
+                <div class="time-inputs">
+                    <input type="number" id="hours" class="time-input" placeholder="hh" min="0" max="99">
+                    <span class="separator">:</span>
+                    <input type="number" id="minutes" class="time-input" placeholder="mm" min="0" max="59">
+                    <span class="separator">:</span>
+                    <input type="number" id="seconds" class="time-input" placeholder="ss" min="0" max="59">
+                </div>
+                <button class="set-btn" id="setTimerBtn">Set</button>
+            </div>
         </div>
-        <button id="set-btn" class="btn set-btn" type="submit">Set</button>
-      </form>
-    </section>
 
-    <section class="active-wrap" aria-live="polite" aria-atomic="true">
-      <div class="current-toggle">Current Timers</div>
-      <div id="empty-state" class="empty-state">You have no timers currently!</div>
-      <ul id="timers-list" class="timers-list"></ul>
-    </section>
+        <div class="current-timers-header">
+            <span>Current Timers</span>
+        </div>
 
-    <audio id="alarm-audio" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
-  </main>
+        <div id="noTimersMessage" class="no-timers">
+            You have no timers currently!
+        </div>
 
-  <script src="app.js"></script>
+        <div id="timersContainer"></div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
