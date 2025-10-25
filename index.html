@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Multiple Timers App</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page" role="main">
+    <header class="header">
+      <h1>Multiple Timers App</h1>
+    </header>
+
+    <section class="input-wrap" aria-labelledby="set-time-heading">
+      <form id="timer-form" class="timer-form" autocomplete="off" novalidate>
+        <span id="set-time-heading" class="label">Set Time :</span>
+        <div class="input-panel" role="group" aria-label="time inputs">
+          <input id="hours" name="hours" inputmode="numeric" placeholder="hh" maxlength="3" aria-label="hours" />
+          <span class="sep">:</span>
+          <input id="minutes" name="minutes" inputmode="numeric" placeholder="mm" maxlength="2" aria-label="minutes" />
+          <span class="sep">:</span>
+          <input id="seconds" name="seconds" inputmode="numeric" placeholder="ss" maxlength="2" aria-label="seconds" />
+        </div>
+        <button id="set-btn" class="btn set-btn" type="submit">Set</button>
+      </form>
+    </section>
+
+    <section class="active-wrap" aria-live="polite" aria-atomic="true">
+      <div class="current-toggle">Current Timers</div>
+      <div id="empty-state" class="empty-state">You have no timers currently!</div>
+      <ul id="timers-list" class="timers-list"></ul>
+    </section>
+
+    <audio id="alarm-audio" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
