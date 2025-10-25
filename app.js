@@ -1,119 +1,182 @@
-const form=document.getElementById('timer-form')
-const hoursInput=document.getElementById('hours')
-const minutesInput=document.getElementById('minutes')
-const secondsInput=document.getElementById('seconds')
-const timersList=document.getElementById('timers-list')
-const emptyState=document.getElementById('empty-state')
-const alarmAudio=document.getElementById('alarm-audio')
-let timersMap={}
-let counter=0
-function pad(n){return String(n).padStart(2,'0')}
-function formatTime(sec){
-  const h=Math.floor(sec/3600)
-  const m=Math.floor((sec%3600)/60)
-  const s=sec%60
-  return `${pad(h)} : ${pad(m)} : ${pad(s)}`
+let timers = [];
+let nextId = 1;
+let intervals = {};
+
+const hoursInput = document.getElementById('hours');
+const minutesInput = document.getElementById('minutes');
+const secondsInput = document.getElementById('seconds');
+const setTimerBtn = document.getElementById('setTimerBtn');
+const timersContainer = document.getElementById('timersContainer');
+const noTimersMessage = document.getElementById('noTimersMessage');
+
+function playAlert() {
+    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSp+zPDTgjMGHm7A7+OZSA0PVqzn6qxbGQg+ltryxnMnBSl+zPDUhDUHH2/C8OKZSQ0OV63o6qxcGgg+mtvzxHIoBSh9y/DWhTYII3DE8N+UQwsRYrfq6qVSEwg7k9jwz38sBy59zPDXhjgIIXDA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VUFAc5kdfsz4AtCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VUFAc5kdfsz4AtCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz4AtCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfsz38tCCp+zPDXhjgIJXLA8N2PQgsQYbXp66VTFAc6kdfs');
+    audio.play().catch(e => console.log('Audio play failed'));
 }
-function updateEmptyState(){
-  if(Object.keys(timersMap).length===0){
-    emptyState.style.display='block'
-  }else{
-    emptyState.style.display='none'
-  }
+
+function formatTime(totalSeconds) {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return {
+        hours: String(h).padStart(2, '0'),
+        minutes: String(m).padStart(2, '0'),
+        seconds: String(s).padStart(2, '0')
+    };
 }
-function createTimerElement(id,remaining){
-  const li=document.createElement('li')
-  li.className='timer-item'
-  li.dataset.id=id
-  const left=document.createElement('div')
-  left.className='timer-left'
-  const label=document.createElement('div')
-  label.className='timer-label'
-  label.textContent='Time Left :'
-  const timeVal=document.createElement('div')
-  timeVal.className='time-val'
-  timeVal.textContent=formatTime(remaining)
-  left.appendChild(label)
-  left.appendChild(timeVal)
-  const actions=document.createElement('div')
-  actions.className='timer-actions'
-  const del=document.createElement('button')
-  del.className='del-btn'
-  del.type='button'
-  del.textContent='Delete'
-  del.addEventListener('click',()=>removeTimer(id))
-  actions.appendChild(del)
-  li.appendChild(left)
-  li.appendChild(actions)
-  return li
-}
-function removeTimer(id){
-  const t=timersMap[id]
-  if(!t) return
-  clearInterval(t.interval)
-  if(t.playing){
-    alarmAudio.pause()
-    alarmAudio.currentTime=0
-  }
-  const el=timersList.querySelector(`[data-id="${id}"]`)
-  if(el) el.remove()
-  delete timersMap[id]
-  updateEmptyState()
-}
-function markEnded(id){
-  const t=timersMap[id]
-  if(!t) return
-  t.ended=true
-  alarmAudio.loop=true
-  alarmAudio.play().catch(()=>{})
-  t.playing=true
-  const el=t.element
-  el.innerHTML=''
-  const panel=document.createElement('div')
-  panel.className='up-panel'
-  panel.textContent='Timer Is Up !'
-  const stop=document.createElement('button')
-  stop.className='stop-btn'
-  stop.type='button'
-  stop.textContent='Stop'
-  stop.addEventListener('click',()=>{
-    if(t.playing){
-      alarmAudio.pause()
-      alarmAudio.currentTime=0
-      t.playing=false
+
+function updateNoTimersMessage() {
+    if (timers.length === 0) {
+        noTimersMessage.classList.remove('hidden');
+    } else {
+        noTimersMessage.classList.add('hidden');
     }
-    removeTimer(id)
-  })
-  panel.appendChild(stop)
-  el.appendChild(panel)
 }
-form.addEventListener('submit',function(e){
-  e.preventDefault()
-  const h=parseInt(hoursInput.value||'0',10)
-  const m=parseInt(minutesInput.value||'0',10)
-  const s=parseInt(secondsInput.value||'0',10)
-  if(Number.isNaN(h)||Number.isNaN(m)||Number.isNaN(s)) return
-  if(h<0||m<0||s<0) return
-  if(m>59||s>59) return
-  const total=h*3600 + m*60 + s
-  if(total<=0) return
-  const id=++counter
-  const li=createTimerElement(id,total)
-  timersList.appendChild(li)
-  updateEmptyState()
-  const timerObj={id,remaining:total,interval:null,ended:false,playing:false,element:li}
-  timersMap[id]=timerObj
-  timerObj.interval=setInterval(()=>{
-    timerObj.remaining--
-    const tv=timerObj.element.querySelector('.time-val')
-    if(tv) tv.textContent=formatTime(Math.max(0,timerObj.remaining))
-    if(timerObj.remaining<=0){
-      clearInterval(timerObj.interval)
-      markEnded(id)
+
+function createTimerElement(timer) {
+    const time = formatTime(timer.timeLeft);
+    
+    if (timer.finished) {
+        const finishedDiv = document.createElement('div');
+        finishedDiv.className = 'timer-finished';
+        finishedDiv.setAttribute('data-id', timer.id);
+        finishedDiv.innerHTML = `
+            <span class="timer-finished-text">Timer Is Up !</span>
+            <button class="stop-btn" onclick="deleteTimer(${timer.id})">Stop</button>
+        `;
+        return finishedDiv;
     }
-  },1000)
-  hoursInput.value=''
-  minutesInput.value=''
-  secondsInput.value=''
-})
-updateEmptyState()
+    
+    const timerCard = document.createElement('div');
+    timerCard.className = 'timer-card';
+    timerCard.setAttribute('data-id', timer.id);
+    timerCard.innerHTML = `
+        <div class="timer-content">
+            <div class="timer-display">
+                <span class="timer-label">Time Left :</span>
+                <div class="time-display">
+                    <span class="time-value">${time.hours}</span>
+                    <span class="separator">:</span>
+                    <span class="time-value">${time.minutes}</span>
+                    <span class="separator">:</span>
+                    <span class="time-value">${time.seconds}</span>
+                </div>
+            </div>
+            <button class="delete-btn" onclick="deleteTimer(${timer.id})">Delete</button>
+        </div>
+    `;
+    return timerCard;
+}
+
+function renderTimers() {
+    timersContainer.innerHTML = '';
+    timers.forEach(timer => {
+        const timerElement = createTimerElement(timer);
+        timersContainer.appendChild(timerElement);
+    });
+    updateNoTimersMessage();
+}
+
+function updateTimer(id) {
+    const timer = timers.find(t => t.id === id);
+    if (!timer || timer.finished) {
+        if (intervals[id]) {
+            clearInterval(intervals[id]);
+            delete intervals[id];
+        }
+        return;
+    }
+    
+    timer.timeLeft--;
+    
+    if (timer.timeLeft <= 0) {
+        timer.timeLeft = 0;
+        timer.finished = true;
+        playAlert();
+        clearInterval(intervals[id]);
+        delete intervals[id];
+    }
+    
+    const timerElement = document.querySelector(`[data-id="${id}"]`);
+    if (timerElement && !timer.finished) {
+        const time = formatTime(timer.timeLeft);
+        const timeValues = timerElement.querySelectorAll('.time-value');
+        if (timeValues.length === 3) {
+            timeValues[0].textContent = time.hours;
+            timeValues[1].textContent = time.minutes;
+            timeValues[2].textContent = time.seconds;
+        }
+    } else if (timer.finished) {
+        renderTimers();
+    }
+}
+
+function startTimer(id) {
+    if (intervals[id]) {
+        clearInterval(intervals[id]);
+    }
+    intervals[id] = setInterval(() => updateTimer(id), 1000);
+}
+
+function deleteTimer(id) {
+    if (intervals[id]) {
+        clearInterval(intervals[id]);
+        delete intervals[id];
+    }
+    timers = timers.filter(t => t.id !== id);
+    renderTimers();
+}
+
+function handleSetTimer() {
+    const h = parseInt(hoursInput.value) || 0;
+    const m = parseInt(minutesInput.value) || 0;
+    const s = parseInt(secondsInput.value) || 0;
+    
+    if (h === 0 && m === 0 && s === 0) {
+        return;
+    }
+    
+    if (m > 59 || s > 59) {
+        return;
+    }
+    
+    const totalSeconds = h * 3600 + m * 60 + s;
+    
+    const newTimer = {
+        id: nextId,
+        timeLeft: totalSeconds,
+        finished: false
+    };
+    
+    timers.push(newTimer);
+    startTimer(nextId);
+    nextId++;
+    
+    hoursInput.value = '';
+    minutesInput.value = '';
+    secondsInput.value = '';
+    
+    renderTimers();
+}
+
+setTimerBtn.addEventListener('click', handleSetTimer);
+
+hoursInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        handleSetTimer();
+    }
+});
+
+minutesInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        handleSetTimer();
+    }
+});
+
+secondsInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        handleSetTimer();
+    }
+});
+
+updateNoTimersMessage();
